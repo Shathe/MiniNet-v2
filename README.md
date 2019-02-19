@@ -1,7 +1,7 @@
 
 Implementation of the MiniNet model presented on the [ICRA 2019](https://www.icra2019.org).
 
-[Link to the paper (soon)]()
+[Link to the paper (soon)](https://github.com/Shathe/MiniNet)
  
 
 
