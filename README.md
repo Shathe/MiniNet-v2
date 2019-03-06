@@ -13,7 +13,7 @@ python train.py --dataset Datasets/camvid --checkpoint_path models/camvid/ --ini
 ```
 ## Testing MiniNet
 ```
-python train.py --dataset Datasets/camvid --checkpoint_path models/camvid/ --n_classes 11 --width 512 --height 256 --train 0 --mininet_version 1
+python train.py --train 0 --dataset Datasets/camvid --checkpoint_path models/camvid/ --n_classes 11 --width 512 --height 256  --mininet_version 1
 ```
 
 ## Citing MiniNet
