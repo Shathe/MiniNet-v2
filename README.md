@@ -2,8 +2,19 @@
 Implementation of the MiniNet model presented on the [ICRA 2019](https://www.icra2019.org).
 
 [Link to the paper (soon)](https://github.com/Shathe/MiniNet)
- 
 
+## Requirements
+- Tensorflow
+
+
+## Training MiniNet
+```
+python train.py --dataset Datasets/camvid --checkpoint_path models/camvid/ --init_lr 0.001 --batch_size 12 --epochs 500 --n_classes 11 --width 512 --height 256 --train 1 --mininet_version 1
+```
+## Testing MiniNet
+```
+python train.py --dataset Datasets/camvid --checkpoint_path models/camvid/ --n_classes 11 --width 512 --height 256 --train 0 --mininet_version 1
+```
 
 ## Citing MiniNet
 
@@ -17,12 +28,10 @@ If you find Multi-Level Superpixels useful in your research, please consider cit
 }
 ```
 
-## Requirements
-- Tensorflow
 
-## MiniNet-v2
-
-Soon
-
+## Training MiniNet-v2
+```
+python train.py --dataset Datasets/camvid --checkpoint_path models/camvid/ --init_lr 0.001 --batch_size 12 --epochs 500 --n_classes 11 --width 1024 --height 512 --train 1 --mininet_version 2
+```
 
 
