@@ -81,31 +81,31 @@ def upsample(x, n_filters, is_training=False, last=False, l2=None, name="down"):
 #################################
 '''
 
-def MiniNet(input_x=None, n_classes=20, is_training=True):
+def MiniNet(input_x=None, n_classes=20, is_training=True, upsampling=1):
     print('input shape')
     print(input_x.shape)
-    x = downsample(input_x, n_filters_in=3, n_filters_out=8, is_training=is_training, l2=l2, name="d1")
+    x = downsample(input_x, n_filters_in=3, n_filters_out=8, is_training=is_training, l2=l2_regularizer, name="d1")
 
-    x = downsample(x, n_filters_in=8, n_filters_out=24, is_training=is_training, l2=l2, name="d2")
-    x = factorized_res_module(x,n_filters=24, is_training=is_training, dilation=[1, 1], l2=l2, name="fres3", dropout=0.0)
-    x = downsample(x, n_filters_in=24, n_filters_out=64, is_training=is_training, l2=l2, name="d2")
-    x = factorized_res_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres4", dropout=0.0)
-    x = downsample(x,  n_filters_in=64, n_filters_out=128, is_training=is_training, l2=l2, name="d8")
-    x = factorized_res_module(x, n_filters=128,is_training=is_training, dilation=[1, 2], l2=l2, name="fres9", dropout=0)
-    x = factorized_res_module(x,n_filters=128, is_training=is_training, dilation=[1, 2], l2=l2, name="fres10", dropout=0)
-    x = factorized_res_module(x, n_filters=128,is_training=is_training, dilation=[1, 4], l2=l2, name="fres11", dropout=0)
-    x = upsample(x, n_filters=64, is_training=is_training, l2=l2, name="up17")
-    x = factorized_res_module(x,n_filters=64, is_training=is_training, dilation=[1, 1], l2=l2, name="fres12", dropout=0)
+    x = downsample(x, n_filters_in=8, n_filters_out=24, is_training=is_training, l2=l2_regularizer, name="d2")
+    x = factorized_res_module(x,n_filters=24, is_training=is_training, dilation=[1, 1], l2=l2_regularizer, name="fres3", dropout=0.0)
+    x = downsample(x, n_filters_in=24, n_filters_out=64, is_training=is_training, l2=l2_regularizer, name="d2")
+    x = factorized_res_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2_regularizer, name="fres4", dropout=0.0)
+    x = downsample(x,  n_filters_in=64, n_filters_out=128, is_training=is_training, l2=l2_regularizer, name="d8")
+    x = factorized_res_module(x, n_filters=128,is_training=is_training, dilation=[1, 2], l2=l2_regularizer, name="fres9", dropout=0)
+    x = factorized_res_module(x,n_filters=128, is_training=is_training, dilation=[1, 2], l2=l2_regularizer, name="fres10", dropout=0)
+    x = factorized_res_module(x, n_filters=128,is_training=is_training, dilation=[1, 4], l2=l2_regularizer, name="fres11", dropout=0)
+    x = upsample(x, n_filters=64, is_training=is_training, l2=l2_regularizer, name="up17")
+    x = factorized_res_module(x,n_filters=64, is_training=is_training, dilation=[1, 1], l2=l2_regularizer, name="fres12", dropout=0)
 
 
 
-    x = upsample(x, n_filters=24, is_training=is_training, l2=l2, name="up17")
-    x3 = downsample(input_x, n_filters_in=3, n_filters_out=8, is_training=is_training, l2=l2, name="d7")
-    x3 = downsample(x3, n_filters_in=8, n_filters_out=24, is_training=is_training, l2=l2, name="d7")
+    x = upsample(x, n_filters=24, is_training=is_training, l2=l2_regularizer, name="up17")
+    x3 = downsample(input_x, n_filters_in=3, n_filters_out=8, is_training=is_training, l2=l2_regularizer, name="d7")
+    x3 = downsample(x3, n_filters_in=8, n_filters_out=24, is_training=is_training, l2=l2_regularizer, name="d7")
     x = x+x3
 
-    x = factorized_res_module(x, n_filters=24,is_training=is_training, dilation=[1, 1], l2=l2, name="fres19", dropout=0)
-    x = upsample(x, n_filters=n_classes, is_training=is_training, l2=l2, name="up23", last=True)
+    x = factorized_res_module(x, n_filters=24,is_training=is_training, dilation=[1, 1], l2=l2_regularizer, name="fres19", dropout=0)
+    x = upsample(x, n_filters=n_classes, is_training=is_training, l2=l2_regularizer, name="up23", last=True)
 
     if upsampling>1:
             x = tf.image.resize_bilinear(x, size=[x.shape[1] * upsampling, x.shape[2] * upsampling], align_corners=True)
@@ -113,7 +113,6 @@ def MiniNet(input_x=None, n_classes=20, is_training=True):
     print('output shape')
     print(x.shape)
     return x
-
 
 
 '''
