@@ -81,7 +81,7 @@ def upsample(x, n_filters, is_training=False, last=False, l2=None, name="down"):
 #################################
 '''
 
-def MiniNet(input_x=None, n_classes=20, training=True):
+def MiniNet(input_x=None, n_classes=20, is_training=True):
     print('input shape')
     print(input_x.shape)
     x = downsample(input_x, n_filters_in=3, n_filters_out=8, is_training=is_training, l2=l2, name="d1")
