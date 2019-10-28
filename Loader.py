@@ -21,8 +21,9 @@ class Loader:
         self.height = height
         self.width = width
         self.dim = channels
+        self.median_freq = np.ones(n_classes)
         self.ignore_label = ignore_label  # label to ignore
-        self.freq = np.zeros(n_classes)  # vector for calculating the class frequency
+        self.freq = np.ones(n_classes)  # vector for calculating the class frequency
         self.index_train = 0  # indexes for iterating while training
         self.index_test = 0  # indexes for iterating while testing
         self.median_frequency_soft = median_frequency  # softener value for the median frequency balancing (if median_frequency==0, nothing is applied, if median_frequency==1, the common formula is applied)
@@ -243,17 +244,12 @@ class Loader:
             else:
                 img = cv2.imread(random_images[index])
 
-            '''
-            # random grayscale
-            if random.random() > 0.5:
-                img2 = cv2.imread(random_images[index], 0)
-                img[:,:,0] = img2
-                img[:,:,1] = img2
-                img[:,:,2] = img2
-            '''
-
 
             label = cv2.imread(random_labels[index], 0)
+            if img is None:
+                print(random_images[index])
+            if label is None:
+                print(random_labels[index])
 
             # Reshape images if its needed
             if img.shape[1] != self.width or img.shape[0] != self.height:
@@ -372,7 +368,7 @@ class Loader:
             return self._get_batch_segmentation(size=size, train=train, augmenter=augmenter, labels_resize_factor=labels_resize_factor)
 
     # Returns the median frequency for class imbalance. It can be soften with the soft value (<=1)
-    def median_frequency_exp(self, soft=1):
+    def median_frequency_exp(self, soft=1.):
 
         if self.problemType == 'classification':
             quantity = []
@@ -397,23 +393,5 @@ class Loader:
         results = np.power(results, soft)
         print(results)
         return results
-
-
-if __name__ == "__main__":
-
-    loader = Loader('./Datasets/camvid', problemType='segmentation', ignore_label=11, n_classes=11, width=480,
-                    height=360, median_frequency=0.25, image_weight=True)
-    # print(loader.median_frequency_exp())
-    x, y, mask = loader.get_batch(size=2, augmenter='segmentation')
-
-    for i in xrange(2):
-        cv2.imshow('x', ((x[i, :, :, :] + 0.5) * 255).astype(np.uint8))
-        cv2.imshow('y', (np.argmax(y, 3)[i, :, :]).astype(np.uint8))
-        print(mask.shape)
-        cv2.imshow('mask', (mask[i, :, :] * 70).astype(np.uint8))
-        cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    x, y, mask = loader.get_batch(size=3, train=False)
-
 
 

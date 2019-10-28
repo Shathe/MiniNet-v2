@@ -66,7 +66,7 @@ def encoder_module(input, n_filters,  is_training, dropout=0.3, dilation=[1,1], 
     x = residual_separable(x, n_filters,  is_training, dropout=dropout, dilation=dilation[1], l2=l2, name=name)
     return x
 
-def encoder_module_multiti(input, n_filters,  is_training, dropout=0.3, dilation=[1,1], l2=None, name="down"):
+def encoder_module_multi(input, n_filters,  is_training, dropout=0.3, dilation=[1,1], l2=None, name="down"):
     x = residual_separable_multi(input, n_filters,  is_training, dropout=dropout, dilation=dilation[0], l2=l2, name=name)
     x = residual_separable_multi(x, n_filters,  is_training, dropout=dropout, dilation=dilation[1], l2=l2, name=name)
     return x

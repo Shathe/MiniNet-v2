@@ -3,119 +3,101 @@ import random
 import os
 import argparse
 import time
-from Mininet import MiniNet2, MiniNet
+from Mininet import MiniNet2
 from utils.utils import get_parameters
 from Loader import Loader
 import math
 import cv2
 random.seed(os.urandom(9))
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--dataset", help="Dataset path", default='Datasets/camvid')
-parser.add_argument("--augmentation", help="Whether to perform Image augmentation", default=1)
-parser.add_argument("--init_lr", help="Initial learning rate", default=8e-4)#2e-3
-parser.add_argument("--min_lr", help="Initial learning rate", default=1e-8)
-parser.add_argument("--batch_size", help="batch_size (lower it if you have memory issues)", default=8)
-parser.add_argument("--n_classes", help="number of classes to classify", default=11)
-parser.add_argument("--epochs", help="Number of epochs to train", default=1500)
-parser.add_argument("--width", help="width", default=512)
-parser.add_argument("--height", help="height", default=256)
-parser.add_argument("--save_model", help="save_model", default=1)
-parser.add_argument("--checkpoint_path", help="checkpoint path", default='./models/camvid/')
-parser.add_argument("--train", help="if true, train, if not, test", default=1)
-parser.add_argument("--mininet_version", help="select mininet version 1 or 2", default=1)
+
+ 
+parser = argparse.ArgumentParser() 
+parser.add_argument("--dataset", help="Dataset to train", default='./Datasets/camvid') 
+parser.add_argument("--init_lr", help="Initial learning rate", default=1e-3)
+parser.add_argument("--min_lr", help="Final learning rate", default=1e-5)
+parser.add_argument("--max_batch_size", help="batch_size", default=6)
+parser.add_argument("--n_classes", help="number of classes to classify", default=19)
+parser.add_argument("--ignore_label", help="class to ignore", default=19)
+parser.add_argument("--epochs", help="Number of epochs to train", default=100)
+parser.add_argument("--width", help="width size to load the rgb image", default=2048) 
+parser.add_argument("--height", help="height size to load the rgb image", default=1024) 
+parser.add_argument("--median_frequency", help="median_frequency weight for class imbalance", default=0.) 
+parser.add_argument("--labels_resize_factor", help="downsample factor to apply to the label image before comparing to the CNN output", default=1) 
+parser.add_argument("--img_resize_factor", help="downsample factor to apply to the rgb image before feeding the CNN", default=1) 
+parser.add_argument("--output_resize_factor", help="resize factor to upsample the output of the CNN", default=1) 
+parser.add_argument("--save_model", help="Whether to save the model while training", default=1)
+parser.add_argument("--checkpoint_path", help="checkpoint path")
+parser.add_argument("--train", help="if true, train, if not, test", default=0)
+
 args = parser.parse_args()
 
 
-
-
-
-# Hyperparameter learning
+# Hyperparameter
+median_frequency = float(args.median_frequency)
+labels_resize_factor = int(args.labels_resize_factor)
+img_resize_factor = int(args.img_resize_factor)
+output_resize_factor = int(args.output_resize_factor)
 init_learning_rate = float(args.init_lr)
-power_lr = 0.9
 min_learning_rate = float(args.min_lr)
-augmentation = bool(int(args.augmentation))
 save_model = bool(int(args.save_model))
 train_or_test = bool(int(args.train))
-batch_size = int(args.batch_size)
+max_batch_size = int(args.max_batch_size)
 total_epochs = int(args.epochs)
-
-# Other hyperparameters
 width = int(args.width)
 n_classes = int(args.n_classes)
+ignore_label = int(args.ignore_label)
 height = int(args.height)
-channels = 3
-checkpoint_path = args.checkpoint_path
+checkpoint_path = args.checkpoint_path 
 
-if int(args.mininet_version) == 1:
-    print('This network was designed for 512x256 resolution')
-    labels_resize_factor = 1
-else:
-    print('This network was designed for 1024x512 resolution')
-    labels_resize_factor = 2
+
+n_gpu = 0
+os.environ["CUDA_VISIBLE_DEVICES"] = str(n_gpu)
 
 labels_w = int(width / labels_resize_factor)
 labels_h = int(height / labels_resize_factor)
 
-augmenter = None
-if augmentation:
-    augmenter = 'segmentation'
-
-# for testing, batch_size = 1
-if not train_or_test:
-    batch_size = 1
-
-
-
-# selct device
-n_gpu = 0
-os.environ["CUDA_VISIBLE_DEVICES"] = str(n_gpu)
-
-
-# Initialize Data Loader
 loader = Loader(dataFolderPath=args.dataset, n_classes=n_classes, problemType='segmentation', width=width,
-                height=height, ignore_label=n_classes, median_frequency=0.00)
+                height=height, ignore_label=ignore_label, median_frequency=median_frequency)
 
 testing_samples = len(loader.image_test_list)
 training_samples = len(loader.image_train_list)
 
-
-
-# Tensorflow Placeholders (similar to varaible initializer)
+# Placeholders
 training_flag = tf.placeholder(tf.bool)
-learning_rate = tf.placeholder(tf.float32, name='learning_rate')
+input_x = tf.placeholder(tf.float32, shape=[None, height, width, 3], name='input')
+if img_resize_factor > 1:
+        input_xx = tf.image.resize_bilinear(input_x, size=[input_x.shape[1] / img_resize_factor,
+                                                           input_x.shape[2] / img_resize_factor],
+                                            align_corners=True)
+else:
+    input_xx = input_x
 
-input_x = tf.placeholder(tf.float32, shape=[None, height, width, channels], name='input')
-
+batch_images = tf.reverse(input_x, axis=[-1])  # opencv rgb -bgr
 label = tf.placeholder(tf.float32, shape=[None, labels_h, labels_w, n_classes + 1],
                        name='output')  # the n_classes + 1 is for the ignore classes
 mask_label = tf.placeholder(tf.float32, shape=[None, labels_h, labels_w], name='mask')
+learning_rate = tf.placeholder(tf.float32, name='learning_rate')
 
-# Initialize neural network
-if int(args.mininet_version) == 1:
-    output = MiniNet(input_x, n_classes, training=training_flag)
-else:
-    output = MiniNet2(input_x, n_classes, is_training=training_flag, upsampling=1)
+# Network
+output = MiniNet2(input_xx, n_classes, is_training=training_flag, upsampling=output_resize_factor  )
 
+img_out = tf.argmax(
+    tf.image.resize_bilinear(output, size=[tf.shape(output)[1] , tf.shape(output)[2] ], align_corners=True), 3)
 
 # Get shapes
 shape_output = tf.shape(output)
 label_shape = tf.shape(label)
 mask_label_shape = tf.shape(mask_label)
 
-
-# FLATTEN placeholders
 predictions = tf.reshape(output, [shape_output[1] * shape_output[2] * shape_output[0], shape_output[3]])
 labels = tf.reshape(label, [label_shape[2] * label_shape[1] * label_shape[0], label_shape[3]])
 mask_labels = tf.reshape(mask_label, [mask_label_shape[1] * mask_label_shape[0] * mask_label_shape[2]])
-
 # Last class is the ignore class
 labels_ignore = labels[:, n_classes]
 labels_real = labels[:, :n_classes]
 
-# LOSS
-cost = tf.losses.softmax_cross_entropy(labels_real, predictions, weights=mask_labels)
-
+cost = tf.losses.softmax_cross_entropy(labels_real, predictions, weights=mask_labels,  label_smoothing=0.0)#
 
 # Metrics
 labels = tf.argmax(labels, 1)
@@ -133,9 +115,9 @@ mean_acc, mean_acc_op = tf.metrics.mean_per_class_accuracy(labels, predictions, 
 iou, conf_mat = tf.metrics.mean_iou(labels, predictions, n_classes)
 conf_matrix_all = tf.confusion_matrix(labels, predictions, num_classes=n_classes)
 
-# Different variables lits
-restore_variables = tf.global_variables()  # [var for var in tf.global_variables() if 'up3' not in var.name]  # Change name
-train_variables = tf.trainable_variables()  # [var for var in tf.trainable_variables() if 'up' in var.name or 'm8' in var.name]
+# Different variables
+restore_variables = tf.global_variables()  
+train_variables = tf.trainable_variables()  
 stream_vars = [i for i in tf.local_variables() if
                'count' in i.name or 'confusion_matrix' in i.name or 'total' in i.name]
 
@@ -150,21 +132,20 @@ with tf.control_dependencies(update_ops):
     train = optimizer.minimize(cost, var_list=train_variables)  # VARIABLES TO OPTIMIZE
 
 
-
 saver = tf.train.Saver(tf.global_variables())
 restorer = tf.train.Saver(restore_variables)
 
-if not os.path.exists(checkpoint_path + 'iou'):
-    os.makedirs(checkpoint_path + 'iou')
+if not os.path.exists(os.path.join(checkpoint_path, 'iou')):
+    os.makedirs(os.path.join(checkpoint_path, 'iou'))
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     sess.run(tf.local_variables_initializer())
 
     # get checkpoint if there is one
-    ckpt = tf.train.get_checkpoint_state(checkpoint_path)
-    ckpt2 = tf.train.get_checkpoint_state(checkpoint_path + 'iou')
-    if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
+    print(checkpoint_path)
+    ckpt2 = tf.train.get_checkpoint_state(os.path.join(checkpoint_path, 'iou'))
+    if ckpt2 and tf.train.checkpoint_exists(ckpt2.model_checkpoint_path):
         print('Loading model...')
         restorer.restore(sess, ckpt2.model_checkpoint_path)
         print('Model loaded')
@@ -172,7 +153,7 @@ with tf.Session() as sess:
     if train_or_test:
 
         # Start variables
-
+        batch_size = int(max_batch_size)
         global_step = 0
         best_val_loss = float('Inf')
         best_iou = float('-Inf')
@@ -182,7 +163,7 @@ with tf.Session() as sess:
             # Calculate tvariables for the batch and inizialize others
             time_first = time.time()
             epoch_learning_rate = (init_learning_rate - min_learning_rate) * math.pow(1 - epoch / 1. / total_epochs,
-                                                                                      power_lr) + min_learning_rate
+                                                                                      0.9) + min_learning_rate
             print ("epoch " + str(epoch + 1) + ", lr: " + str(epoch_learning_rate) + ", batch_size: " + str(batch_size))
 
             total_steps = int(training_samples / batch_size) + 1
@@ -191,8 +172,8 @@ with tf.Session() as sess:
             for step in range(total_steps):
                 # get training data
                 batch_x, batch_y, batch_mask = loader.get_batch(size=batch_size, train=True,
-                                                                augmenter=augmenter,
-                                                                labels_resize_factor=labels_resize_factor)  # , augmenter='segmentation'
+                                                                augmenter='segmentation',
+                                                                labels_resize_factor=labels_resize_factor)  
 
                 train_feed_dict = {
                     input_x: batch_x,
@@ -220,8 +201,8 @@ with tf.Session() as sess:
                     learning_rate: 0,
                     training_flag: False
                 }
-                acc_update, miou_update, mean_acc_update, val_loss = sess.run(
-                    [acc_op, conf_mat, mean_acc_op, cost],
+                image, acc_update, miou_update, mean_acc_update, val_loss = sess.run(
+                    [img_out, acc_op, conf_mat, mean_acc_op, cost],
                     feed_dict=test_feed_dict)
                 acc_total, miou_total, mean_acc_total = sess.run([acc, iou, mean_acc], feed_dict=test_feed_dict)
 
@@ -261,10 +242,6 @@ with tf.Session() as sess:
         matrix_confusion = None
         list = loader.image_test_list
 
-        # visual image placeholder
-        img_out = tf.argmax(
-            tf.image.resize_bilinear(output, size=[tf.shape(output)[1], tf.shape(output)[2]], align_corners=True), 3)
-
         for i in xrange(0, testing_samples):
             x_test, y_test, mask_test = loader.get_batch(size=1, train=False, labels_resize_factor=labels_resize_factor)
             test_feed_dict = {
@@ -279,9 +256,8 @@ with tf.Session() as sess:
                 feed_dict=test_feed_dict)
             acc_total, miou_total, mean_acc_total, matrix_conf = sess.run([acc, iou, mean_acc, conf_matrix_all],
                                                                           feed_dict=test_feed_dict)
-
             output_dir = 'out_dir/'
-            dataset_name = args.dataset[:-1].split('/')[-1]
+            dataset_name = args.dataset
             out_dir = os.path.join(output_dir, dataset_name)
             if not os.path.exists(out_dir):
                 os.makedirs(out_dir)
