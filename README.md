@@ -1,5 +1,5 @@
 
-Enahanced implementation of the MiniNet model presented on the [ICRA 2019](https://www.icra2019.org).
+Enhanced implementation of the MiniNet model presented on the [ICRA 2019](https://www.icra2019.org).
 
 [Link to the paper](https://ieeexplore.ieee.org/abstract/document/8793923)
 
