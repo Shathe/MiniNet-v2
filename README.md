@@ -62,7 +62,7 @@ The most common problem is memory issues, if you have them, reduce the max_batch
 python train.py --train 1 --dataset ./Datasets/camvid \
 --checkpoint_path ./weights/Mininetv2/camvid_new \
 --n_classes 11 --ignore_label 11 --width 960 --height 720 \
---max_batch_size 6 --init_lr 1e-3  --min_lr 1e-5 --epochs 1000 \
+--max_batch_size 6 --init_lr 1e-3  --min_lr 1e-5 --epochs 1500 \
 --output_resize_factor 2 --median_frequency 0.12
 ```
 ### Cityscapes
@@ -71,7 +71,7 @@ First download the dataset [here](https://drive.google.com/drive/folders/1xdfwU1
 python train.py --train 1 --dataset ./Datasets/cityscapes \
 --checkpoint_path ./weights/Mininetv2/camvid_new \
 --n_classes 11 --ignore_label 11 --width 960 --height 720 \
---max_batch_size 6 --init_lr 1e-3  --min_lr 1e-5 --epochs 1000 \
+--max_batch_size 6 --init_lr 1e-3  --min_lr 1e-5 --epochs 200 \
 --output_resize_factor 4 --img_resize_factor 2 --median_frequency 0.12
 ```
 
