@@ -4,6 +4,7 @@ Enahanced implementation of the MiniNet model presented on the [ICRA 2019](https
 [Link to the paper](https://ieeexplore.ieee.org/abstract/document/8793923)
 
 ## Requirements
+- Python 2.7
 - tensorflow
 - imgaug
 - cv2
