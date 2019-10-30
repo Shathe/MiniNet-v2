@@ -1,0 +1,4 @@
+model_checkpoint_path: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_480x360/modellast.ckpt"
+all_model_checkpoint_paths: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_480x360/model.ckpt"
+all_model_checkpoint_paths: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_480x360/iou/model.ckpt"
+all_model_checkpoint_paths: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_480x360/modellast.ckpt"

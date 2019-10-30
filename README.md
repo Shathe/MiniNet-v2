@@ -33,7 +33,7 @@ When testing, apart from reporting the metrics, the resulting output images are 
 ### Camvid
 ```
 python train.py --train 0 --dataset ./Datasets/camvid \
---checkpoint_path ./weights/Mininetv2/camvid_pretrained \
+--checkpoint_path ./weights/Mininetv2/camvid_960x720 \
 --n_classes 11 --width 960 --height 720 --output_resize_factor 2 
 ```
 Now you can color those outputs to be able to visualize the results.
