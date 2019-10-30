@@ -19,16 +19,28 @@ parser.add_argument("--width", help="width", default=1024)
 parser.add_argument("--height", help="height", default=512)
 args = parser.parse_args()
 
+class Interpolate(nn.Module):
+	def __init__(self, size, mode):
+		super(Interpolate, self).__init__()
+		self.interp = nn.functional.interpolate
+		self.size = size
+		self.mode = mode
+
+	def forward(self, x):
+		x = self.interp(x, size=self.size, mode=self.mode, align_corners=True)
+		return x
 
 class SeparableConv2d(nn.Module):
 	def __init__(self,in_channels,out_channels,kernel_size=1,stride=1,padding=0,dilation=1,bias=False):
 		super(SeparableConv2d,self).__init__()
-
-		self.conv1 = nn.Conv2d(in_channels,in_channels,kernel_size,stride,padding,dilation,groups=in_channels,bias=bias)
+		self.conv = nn.Conv2d(in_channels,in_channels,kernel_size,stride,padding,dilation,groups=in_channels,bias=bias)
+		self.bn = nn.BatchNorm2d(in_channels, eps=1e-3)
 		self.pointwise = nn.Conv2d(in_channels,out_channels,1,1,0,1,1,bias=bias)
 
 	def forward(self,x):
-		x = self.conv1(x)
+		x = self.conv(x)
+		x = self.bn(x)
+		x = F.relu(x)
 		x = self.pointwise(x)
 		return x
 
@@ -48,7 +60,6 @@ class SeparableConv2d_muldil(nn.Module):
 		x2 = self.conv2(inputs)
 		x2 = self.bn2(x2)
 		x2 = F.relu(x2)
-
 		x += x2
 		x = self.pointwise(x)
 		return x
@@ -56,7 +67,6 @@ class SeparableConv2d_muldil(nn.Module):
 class DownsamplerBlock(nn.Module):
 	def __init__(self, ninput, noutput, **kwargs):
 		super(DownsamplerBlock, self).__init__(**kwargs)
-
 		self.conv = nn.Conv2d(ninput, noutput - ninput, (3, 3), stride=2, padding=1, bias=False)
 		self.pool = nn.MaxPool2d(2, stride=2)
 		self.bn = nn.BatchNorm2d(noutput, eps=1e-3)
@@ -108,7 +118,6 @@ class non_bottleneck_1d(nn.Module):
 		self.mod1 = moduleERS(chann, dropprob, dilated1)
 		self.mod2 = moduleERS(chann, dropprob, dilated)
 
-
 	def forward(self, input):
 		output = self.mod1(input)
 		output = self.mod2(output)
@@ -122,7 +131,6 @@ class non_bottleneck_1d_muldil(nn.Module):
 		self.mod1 = moduleERS_muldil(chann, dropprob, dilated1)
 		self.mod2 = moduleERS_muldil(chann, dropprob, dilated)
 
-
 	def forward(self, input):
 		output = self.mod1(input)
 		output = self.mod2(output)
@@ -131,7 +139,7 @@ class non_bottleneck_1d_muldil(nn.Module):
 
 
 class Encoder(nn.Module):
-	def __init__(self, num_classes, **kwargs):
+	def __init__(self, **kwargs):
 		super(Encoder, self).__init__(**kwargs)
 		self.initial_block = DownsamplerBlock(3, 16)
 
@@ -153,7 +161,6 @@ class Encoder(nn.Module):
 		self.layers.append(non_bottleneck_1d_muldil(128, 0.25,1, 2))
 		self.layers.append(non_bottleneck_1d_muldil(128, 0.25,1, 4))
 		self.layers.append(non_bottleneck_1d_muldil(128, 0.25,1, 8))
-
 
 	def forward(self, input, predict=False):
 		output = self.initial_block(input)
@@ -191,22 +198,18 @@ class Decoder(nn.Module):
 		self.upsample = UpsamplerBlock(128, 64)
 		self.layers = nn.ModuleList()
 
-		self.layers.append(non_bottleneck_1d(64, 0,1,  1))
-		self.layers.append(non_bottleneck_1d(64, 0,1,  1))
+		self.layers.append(non_bottleneck_1d(64, 0, 1,  1))
+		self.layers.append(non_bottleneck_1d(64, 0, 1,  1))
 
 		self.output_conv = nn.ConvTranspose2d(64, num_classes, 3, stride=2, padding=0, output_padding=0, bias=True)
 
 	def forward(self, input, image):
 		output = input
-
 		output = self.upsample(output)
-
 
 		y = self.skip_input(image)
 		y = self.skip_input2(y)
-
 		output = output + y
-
 
 		for layer in self.layers:
 			output = layer(output)
@@ -216,23 +219,20 @@ class Decoder(nn.Module):
 		return output
 
 
-# ERFNet
 class Net(nn.Module):
-	def __init__(self, num_classes, encoder=None, **kwargs):  # use encoder to pass pretrained encoder
+	def __init__(self, num_classes, **kwargs):  # use encoder to pass pretrained encoder
 		super(Net, self).__init__(**kwargs)
 
-		if (encoder == None):
-			self.encoder = Encoder(num_classes)
-		else:
-			self.encoder = encoder
+		self.encoder = Encoder()
 		self.decoder = Decoder(num_classes)
 
-	def forward(self, input, only_encode=False):
-		if only_encode:
-			return self.encoder.forward(input, predict=True)
-		else:
-			output = self.encoder(input)  # predict=False by default
-			return self.decoder.forward(output, input)
+	def forward(self, input, only_encode=False, return_input_size=True):
+		output = self.encoder(input)  # predict=False by default
+		output = self.decoder.forward(output, input)
+		if return_input_size:
+			output = Interpolate(size=(input.shape[2], input.shape[3]), mode='bilinear')(output)
+
+		return output
 
 
 
@@ -255,13 +255,15 @@ time_train = []
 
 inputs = Variable(images)
 outputs = model(inputs)
-outputs = model(inputs)
+
+
 
 while (True):
 	inputs = Variable(images)
 	with torch.no_grad():
 		start_time = time.time()
-		outputs = model(inputs)
+		# If you want to return the resolution of the input size, set return_input_size=True
+		outputs = model(inputs, return_input_size=False)
 
 	torch.cuda.synchronize()  # wait for cuda to finish (cuda is asynchronous!)
 	fwt = time.time() - start_time
