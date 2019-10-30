@@ -137,7 +137,43 @@ def MiniNet2(input_x,  n_classes, l2=None, is_training=False, upsampling=1):
     x = x+x3
 
     x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres19", dropout=0)
-    x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres19", dropout=0)
+    x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres20", dropout=0)
+    x = upsample(x, n_filters=n_classes, is_training=is_training, l2=l2, name="up23", last=True)
+
+    if upsampling > 1:
+            x = tf.image.resize_bilinear(x, size=[x.shape[1] * upsampling, x.shape[2] * upsampling], align_corners=True)
+
+    return x
+
+
+
+
+
+'''
+####################################
+############ MININET-v2-cpu ############
+####################################
+'''
+
+def MiniNet2_cpu(input_x,  n_classes, l2=None, is_training=False, upsampling=1):
+    
+    x = downsample(input_x, n_filters_in=3, n_filters_out=16, is_training=is_training, l2=l2, name="d1")
+
+    x = downsample(x, n_filters_in=16, n_filters_out=64, is_training=is_training, l2=l2, name="d2")
+    x = encoder_module(x,n_filters=64, is_training=is_training, dilation=[1, 1], l2=l2, name="fres3", dropout=0.0)
+    x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres4", dropout=0.0)
+
+    x = downsample(x,  n_filters_in=64, n_filters_out=128, is_training=is_training, l2=l2, name="d8")
+    x = encoder_module_multi(x, n_filters=128,is_training=is_training, dilation=[1, 2], l2=l2, name="fres9", dropout=0.25)
+    x = encoder_module_multi(x,n_filters=128, is_training=is_training, dilation=[1, 4], l2=l2, name="fres10", dropout=0.25)
+    x = encoder_module_multi(x, n_filters=128,is_training=is_training, dilation=[1, 8], l2=l2, name="fres11", dropout=0.25)
+
+    x = upsample(x, n_filters=64, is_training=is_training, l2=l2, name="up17")
+    x3 = downsample(input_x, n_filters_in=3, n_filters_out=16, is_training=is_training, l2=l2, name="d7")
+    x3 = downsample(x3, n_filters_in=16, n_filters_out=64, is_training=is_training, l2=l2, name="d7")
+    x = x+x3
+
+    x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres20", dropout=0)
     x = upsample(x, n_filters=n_classes, is_training=is_training, l2=l2, name="up23", last=True)
 
     if upsampling > 1:
