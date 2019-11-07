@@ -35,12 +35,12 @@ def residual_separable(input, n_filters,  is_training, dropout=0.3, dilation=1, 
 
 def residual_separable_multi(input, n_filters,  is_training, dropout=0.3, dilation=1, l2=None, name="down"):
     input_b = tf.identity(input)
-    d = tf.keras.layers.DepthwiseConv2D(3, strides=(1, 1), depth_multiplier=1, padding='same')
+    d = tf.keras.layers.DepthwiseConv2D(3, strides=(1, 1), depth_multiplier=1, padding='same', use_bias=False)
     x = d(input)
     x = tf.layers.batch_normalization(x, training=is_training)
     x = tf.nn.relu(x)
 
-    d2= tf.keras.layers.DepthwiseConv2D(3, strides=(1, 1), depth_multiplier=1, padding='same')
+    d2= tf.keras.layers.DepthwiseConv2D(3, strides=(1, 1), depth_multiplier=1, padding='same', use_bias=False)
     d2.dilation_rate = (dilation, dilation)
     x2 = d2(input)
     x2 = tf.layers.batch_normalization(x2, training=is_training)
@@ -156,12 +156,10 @@ def MiniNet2(input_x,  n_classes, l2=None, is_training=False, upsampling=1):
 '''
 
 def MiniNet2_cpu(input_x,  n_classes, l2=None, is_training=False, upsampling=1):
-    
     x = downsample(input_x, n_filters_in=3, n_filters_out=16, is_training=is_training, l2=l2, name="d1")
 
     x = downsample(x, n_filters_in=16, n_filters_out=64, is_training=is_training, l2=l2, name="d2")
     x = encoder_module(x,n_filters=64, is_training=is_training, dilation=[1, 1], l2=l2, name="fres3", dropout=0.0)
-    x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres4", dropout=0.0)
 
     x = downsample(x,  n_filters_in=64, n_filters_out=128, is_training=is_training, l2=l2, name="d8")
     x = encoder_module_multi(x, n_filters=128,is_training=is_training, dilation=[1, 2], l2=l2, name="fres9", dropout=0.25)

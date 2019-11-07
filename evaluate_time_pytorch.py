@@ -17,7 +17,9 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--width", help="width", default=1024)
 parser.add_argument("--height", help="height", default=512)
+parser.add_argument("--cpu_version", help="Whether to use the cpu version", default=0)
 args = parser.parse_args()
+cpu_version = bool(int(args.cpu_version))
 
 class Interpolate(nn.Module):
 	def __init__(self, size, mode):
@@ -174,6 +176,35 @@ class Encoder(nn.Module):
 		return output
 
 
+class Encoder_cpu(nn.Module):
+	def __init__(self, **kwargs):
+		super(Encoder_cpu, self).__init__(**kwargs)
+		self.initial_block = DownsamplerBlock(3, 16)
+
+		self.layers = nn.ModuleList()
+
+		self.layers.append(DownsamplerBlock(16, 64))
+
+		self.layers.append(non_bottleneck_1d(64, 0.00, 1, 1))
+
+		self.layers.append(DownsamplerBlock(64, 128))
+
+		self.layers.append(non_bottleneck_1d_muldil(128, 0.25, 1, 2))
+		self.layers.append(non_bottleneck_1d_muldil(128, 0.25, 1, 4))
+		self.layers.append(non_bottleneck_1d_muldil(128, 0.25, 1, 8))
+
+	def forward(self, input, predict=False):
+		output = self.initial_block(input)
+
+		for layer in self.layers:
+			output = layer(output)
+
+		if predict:
+			output = self.output_conv(output)
+
+		return output
+
+
 class UpsamplerBlock(nn.Module):
 	def __init__(self, ninput, noutput, **kwargs):
 		super(UpsamplerBlock, self).__init__(**kwargs)
@@ -219,6 +250,35 @@ class Decoder(nn.Module):
 		return output
 
 
+class Decoder_cpu(nn.Module):
+	def __init__(self, num_classes, **kwargs):
+		super(Decoder_cpu, self).__init__(**kwargs)
+
+		self.skip_input = DownsamplerBlock(3, 16)
+		self.skip_input2 = DownsamplerBlock(16, 64)
+
+		self.upsample = UpsamplerBlock(128, 64)
+		self.layers = nn.ModuleList()
+
+		self.layers.append(non_bottleneck_1d(64, 0, 1,  1))
+
+		self.output_conv = nn.ConvTranspose2d(64, num_classes, 3, stride=2, padding=0, output_padding=0, bias=True)
+
+	def forward(self, input, image):
+		output = input
+		output = self.upsample(output)
+
+		y = self.skip_input(image)
+		y = self.skip_input2(y)
+		output = output + y
+
+		for layer in self.layers:
+			output = layer(output)
+
+		output = self.output_conv(output)
+
+		return output
+
 class Net(nn.Module):
 	def __init__(self, num_classes, **kwargs):  # use encoder to pass pretrained encoder
 		super(Net, self).__init__(**kwargs)
@@ -235,13 +295,31 @@ class Net(nn.Module):
 		return output
 
 
+class Net_cpu(nn.Module):
+	def __init__(self, num_classes, **kwargs):  # use encoder to pass pretrained encoder
+		super(Net_cpu, self).__init__(**kwargs)
+
+		self.encoder = Encoder_cpu()
+		self.decoder = Decoder_cpu(num_classes)
+
+	def forward(self, input, only_encode=False, return_input_size=True):
+		output = self.encoder(input)  # predict=False by default
+		output = self.decoder.forward(output, input)
+		if return_input_size:
+			output = Interpolate(size=(input.shape[2], input.shape[3]), mode='bilinear')(output)
+
+		return output
+
 
 # Hyperparameter
 width = int(args.width)
 height = int(args.height)
 
+if cpu_version:
+	model = Net_cpu(19)
+else:
+	model = Net(19)
 
-model = Net(19)
 pytorch_total_params = sum(p.numel() for p in model.parameters())
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 from torch.autograd import Variable

@@ -3,7 +3,7 @@ import random
 import os
 import argparse
 import time
-from Mininet import MiniNet2
+from Mininet import MiniNet2, MiniNet2_cpu
 from utils.utils import get_parameters
 from Loader import Loader
 import math
@@ -13,22 +13,23 @@ random.seed(os.urandom(9))
 
  
 parser = argparse.ArgumentParser() 
-parser.add_argument("--dataset", help="Dataset to train", default='./Datasets/camvid') 
+parser.add_argument("--dataset", help="Dataset to train", default='./Datasets/camvid')
 parser.add_argument("--init_lr", help="Initial learning rate", default=1e-3)
 parser.add_argument("--min_lr", help="Final learning rate", default=1e-5)
 parser.add_argument("--max_batch_size", help="batch_size", default=6)
-parser.add_argument("--n_classes", help="number of classes to classify", default=19)
-parser.add_argument("--ignore_label", help="class to ignore", default=19)
+parser.add_argument("--n_classes", help="number of classes to classify", default=11)
+parser.add_argument("--ignore_label", help="class to ignore", default=11)
 parser.add_argument("--epochs", help="Number of epochs to train", default=100)
-parser.add_argument("--width", help="width size to load the rgb image", default=2048) 
-parser.add_argument("--height", help="height size to load the rgb image", default=1024) 
+parser.add_argument("--width", help="width size to load the rgb image", default=960)
+parser.add_argument("--height", help="height size to load the rgb image", default=720)
 parser.add_argument("--median_frequency", help="median_frequency weight for class imbalance", default=0.) 
-parser.add_argument("--labels_resize_factor", help="downsample factor to apply to the label image before comparing to the CNN output", default=1) 
-parser.add_argument("--img_resize_factor", help="downsample factor to apply to the rgb image before feeding the CNN", default=1) 
-parser.add_argument("--output_resize_factor", help="resize factor to upsample the output of the CNN", default=1) 
+parser.add_argument("--labels_resize_factor", help="downsample factor to apply to the label image before comparing to the CNN output", default=1)
+parser.add_argument("--img_resize_factor", help="downsample factor to apply to the rgb image before feeding the CNN", default=2)
+parser.add_argument("--output_resize_factor", help="resize factor to upsample the output of the CNN", default=4)
 parser.add_argument("--save_model", help="Whether to save the model while training", default=1)
-parser.add_argument("--checkpoint_path", help="checkpoint path")
+parser.add_argument("--checkpoint_path", help="checkpoint path", default='./weights/Mininetv2_cpu/camvid_480x360')
 parser.add_argument("--train", help="if true, train, if not, test", default=0)
+parser.add_argument("--cpu_version", help="Whether to use the cpu version", default=1)
 
 args = parser.parse_args()
 
@@ -42,6 +43,7 @@ init_learning_rate = float(args.init_lr)
 min_learning_rate = float(args.min_lr)
 save_model = bool(int(args.save_model))
 train_or_test = bool(int(args.train))
+cpu_version = bool(int(args.cpu_version))
 max_batch_size = int(args.max_batch_size)
 total_epochs = int(args.epochs)
 width = int(args.width)
@@ -80,7 +82,10 @@ mask_label = tf.placeholder(tf.float32, shape=[None, labels_h, labels_w], name='
 learning_rate = tf.placeholder(tf.float32, name='learning_rate')
 
 # Network
-output = MiniNet2(input_xx, n_classes, is_training=training_flag, upsampling=output_resize_factor  )
+if cpu_version:
+    output = MiniNet2_cpu(input_xx, n_classes, is_training=training_flag, upsampling=output_resize_factor)
+else:
+    output = MiniNet2(input_xx, n_classes, is_training=training_flag, upsampling=output_resize_factor)
 
 img_out = tf.argmax(
     tf.image.resize_bilinear(output, size=[tf.shape(output)[1] , tf.shape(output)[2] ], align_corners=True), 3)
@@ -116,8 +121,8 @@ iou, conf_mat = tf.metrics.mean_iou(labels, predictions, n_classes)
 conf_matrix_all = tf.confusion_matrix(labels, predictions, num_classes=n_classes)
 
 # Different variables
-restore_variables = tf.global_variables()  
-train_variables = tf.trainable_variables()  
+restore_variables = tf.global_variables()
+train_variables = tf.trainable_variables()
 stream_vars = [i for i in tf.local_variables() if
                'count' in i.name or 'confusion_matrix' in i.name or 'total' in i.name]
 
