@@ -1,4 +1,4 @@
-model_checkpoint_path: "modellast.ckpt"
-all_model_checkpoint_paths: "model.ckpt"
-all_model_checkpoint_paths: "iou/model.ckpt"
-all_model_checkpoint_paths: "modellast.ckpt"
+model_checkpoint_path: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_pretrained/modellast.ckpt"
+all_model_checkpoint_paths: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_pretrained/iou/model.ckpt"
+all_model_checkpoint_paths: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_pretrained/model.ckpt"
+all_model_checkpoint_paths: "/home/snowflake/Desktop/TRO_ICRA_code/models/Final_weights/Mininetv2/camvid_pretrained/modellast.ckpt"
