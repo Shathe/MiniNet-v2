@@ -86,7 +86,8 @@ python evaluate_time_pytorch.py  --width 1024 --height 512
 python evaluate_time_tensorflow.py  --width 1024 --height 512
 ```
 ### MiniNet-v2-cpu
-For executing the small version, just set the parameter --cpu_version to 1 in all the previous scripts
+For executing the small version, just set the parameter --cpu_version to 1 in all the previous scripts.
 ```
 --cpu_version 1
 ```
+Change other parameters like the weights to load,resolution etc... Depending on the set up to execute.
