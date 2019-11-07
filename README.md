@@ -11,17 +11,7 @@ Enhanced implementation of the MiniNet model presented on the [ICRA 2019](https:
 - keras
 - scipy
 
-## Citing MiniNet
 
-If you find MiniNet useful in your research, please consider citing:
-```
-@inproceedings{alonso2019Mininet,
-  title={Enhancing V-SLAM Keyframe Selection with an Efficient ConvNet for Semantic Analysis},
-  author={Alonso, I{\~n}igo and Riazuelo, Luis and Murillo, Ana C},
-  booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
-  year={2019}
-}
-```
 
 ## Downloading Datasets and Weights
 Go [here](https://drive.google.com/drive/folders/1xdfwU164M7tJVOaqco-tGMBcQcb1r_ml?usp=sharing) for downloading both the datasets and the trained weights reported in the paper.
@@ -85,4 +75,9 @@ python evaluate_time_pytorch.py  --width 1024 --height 512
 ```
 python evaluate_time_tensorflow.py  --width 1024 --height 512
 ```
-
+### MiniNet-v2-cpu
+For executing the small version, just set the parameter --cpu_version to 1 in all the previous scripts.
+```
+--cpu_version 1
+```
+Change other parameters like the weights to load,resolution etc... Depending on the set up to execute.
