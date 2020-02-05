@@ -17,7 +17,7 @@ MiniNet: An Efficient Semantic Segmentation ConvNet for Real-time Robotic Applic
 If you find MiniNetV2 useful in your research, please consider citing:
 ```
 @article{alonso2020MininetV2,
-  title={MiniNet: An Efficient Semantic SegmentationConvNet for Real-time Robotic Applications},
+  title={MiniNet: An Efficient Semantic Segmentation ConvNet for Real-time Robotic Applications},
   author={Alonso, I{\~n}igo and Riazuelo, Luis and Murillo, Ana C},
   journal={IEEE Transactions on Robotics (T-RO)},
   year={2020}
