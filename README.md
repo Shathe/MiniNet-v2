@@ -1,7 +1,7 @@
 
 MiniNet: An Efficient Semantic Segmentation ConvNet for Real-time Robotic Applications.
 
-[Soon](https://github.com/Shathe/MiniNet-v2)
+[Link to the paper soon](https://github.com/Shathe/MiniNet-v2)
 
 ## Requirements
 - Python 2.7
