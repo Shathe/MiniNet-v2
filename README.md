@@ -12,6 +12,19 @@ MiniNet: An Efficient Semantic Segmentation ConvNet for Real-time Robotic Applic
 - scipy
 
 
+## Citing MiniNetV2
+
+If you find MiniNetV2 useful in your research, please consider citing:
+```
+@article{alonso2020MininetV2,
+  title={MiniNet: An Efficient Semantic SegmentationConvNet for Real-time Robotic Applications},
+  author={Alonso, I{\~n}igo and Riazuelo, Luis and Murillo, Ana C},
+  journal={IEEE Transactions on Robotics (T-RO)},
+  year={2020}
+}
+```
+
+
 
 ## Downloading Datasets and Weights
 Go [here](https://drive.google.com/drive/folders/1xdfwU164M7tJVOaqco-tGMBcQcb1r_ml?usp=sharing) for downloading both the datasets and the trained weights reported in the paper.
