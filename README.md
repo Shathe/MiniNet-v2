@@ -1,7 +1,7 @@
 
-Enhanced implementation of the MiniNet model presented on the [ICRA 2019](https://www.icra2019.org).
+MiniNet: An Efficient Semantic Segmentation ConvNet for Real-time Robotic Applications.
 
-[Link to the paper](https://ieeexplore.ieee.org/abstract/document/8793923)
+[Link to the paper soon](https://github.com/Shathe/MiniNet-v2)
 
 ## Requirements
 - Python 2.7
@@ -10,6 +10,19 @@ Enhanced implementation of the MiniNet model presented on the [ICRA 2019](https:
 - cv2
 - keras
 - scipy
+
+
+## Citing MiniNetV2
+
+If you find MiniNetV2 useful in your research, please consider citing:
+```
+@article{alonso2020MininetV2,
+  title={MiniNet: An Efficient Semantic Segmentation ConvNet for Real-time Robotic Applications},
+  author={Alonso, I{\~n}igo and Riazuelo, Luis and Murillo, Ana C},
+  journal={IEEE Transactions on Robotics (T-RO)},
+  year={2020}
+}
+```
 
 
 
