@@ -83,7 +83,6 @@ with tf.Session() as sess:
 	image_salida2 = output.eval(feed_dict={x: img, training_flag: False})
 	sol = 0.
 	for i in range(1000):
-		print(device_lib.list_local_devices())
 		img = np.random.randint(0, high=255, size=(1, height, width, 3))
 		first = time.time()
 		image_salida2 = output.eval(feed_dict={x: img, training_flag: False})
