@@ -136,8 +136,8 @@ def MiniNet2(input_x,  n_classes, l2=None, is_training=False, upsampling=1):
     x3 = downsample(x3, n_filters_in=16, n_filters_out=64, is_training=is_training, l2=l2, name="d7")
     x = x+x3
 
+    x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres18", dropout=0)
     x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres19", dropout=0)
-    x = encoder_module(x, n_filters=64,is_training=is_training, dilation=[1, 1], l2=l2, name="fres20", dropout=0)
     x = upsample(x, n_filters=n_classes, is_training=is_training, l2=l2, name="up23", last=True)
 
     if upsampling > 1:

@@ -29,7 +29,7 @@ parser.add_argument("--output_resize_factor", help="resize factor to upsample th
 parser.add_argument("--save_model", help="Whether to save the model while training", default=1)
 parser.add_argument("--checkpoint_path", help="checkpoint path", default='./weights/Mininetv2_cpu/camvid_480x360')
 parser.add_argument("--train", help="if true, train, if not, test", default=0)
-parser.add_argument("--cpu_version", help="Whether to use the cpu version", default=1)
+parser.add_argument("--cpu_version", help="Whether to use the cpu version", default=0)
 
 args = parser.parse_args()
 
@@ -55,7 +55,6 @@ checkpoint_path = args.checkpoint_path
 
 n_gpu = 0
 os.environ["CUDA_VISIBLE_DEVICES"] = str(n_gpu)
-
 labels_w = int(width / labels_resize_factor)
 labels_h = int(height / labels_resize_factor)
 
@@ -80,16 +79,16 @@ label = tf.placeholder(tf.float32, shape=[None, labels_h, labels_w, n_classes + 
                        name='output')  # the n_classes + 1 is for the ignore classes
 mask_label = tf.placeholder(tf.float32, shape=[None, labels_h, labels_w], name='mask')
 learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-
+ 
 # Network
 if cpu_version:
     output = MiniNet2_cpu(input_xx, n_classes, is_training=training_flag, upsampling=output_resize_factor)
 else:
     output = MiniNet2(input_xx, n_classes, is_training=training_flag, upsampling=output_resize_factor)
-
 img_out = tf.argmax(
     tf.image.resize_bilinear(output, size=[tf.shape(output)[1] , tf.shape(output)[2] ], align_corners=True), 3)
 
+ 
 # Get shapes
 shape_output = tf.shape(output)
 label_shape = tf.shape(label)

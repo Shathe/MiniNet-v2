@@ -338,6 +338,7 @@ outputs = model(inputs)
 
 while (True):
 	inputs = Variable(images)
+	model.eval()
 	with torch.no_grad():
 		start_time = time.time()
 		# If you want to return the resolution of the input size, set return_input_size=True

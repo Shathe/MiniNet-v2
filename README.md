@@ -34,10 +34,10 @@ python from_out_to_color_camvid.py --input_dir ./out_dir/Datasets/camvid --outpu
 ### Cityscapes
 First download the dataset [here](https://drive.google.com/drive/folders/1xdfwU164M7tJVOaqco-tGMBcQcb1r_ml?usp=sharing).
 ```
-python train.py --train 0 --dataset ./Datasets/cityscapes \
+python train.py --train 0 --dataset ./Datasets/cityscapes --ignore_label 19 \
 --checkpoint_path ./weights/Mininetv2/cityscapes_1024x512 \
 --n_classes 19 --width 2048 --height 1024 \
---img_resize_factor 2 --output_resize_factor 4 
+--img_resize_factor 1 --output_resize_factor 2 
 ```
 Now you can color those outputs to be able to visualize the results.
 ```
@@ -59,10 +59,10 @@ python train.py --train 1 --dataset ./Datasets/camvid \
 First download the dataset [here](https://drive.google.com/drive/folders/1xdfwU164M7tJVOaqco-tGMBcQcb1r_ml?usp=sharing).
 ```
 python train.py --train 1 --dataset ./Datasets/cityscapes \
---checkpoint_path ./weights/Mininetv2/camvid_new \
---n_classes 11 --ignore_label 11 --width 960 --height 720 \
+--checkpoint_path ./weights/Mininetv2/cityscapes_1024x512 \
+--n_classes 19 --ignore_label 19 --width 1024 --height 512 \
 --max_batch_size 6 --init_lr 1e-3  --min_lr 1e-5 --epochs 200 \
---output_resize_factor 4 --img_resize_factor 2 --median_frequency 0.12
+--output_resize_factor 2 --img_resize_factor 1 --median_frequency 0.12
 ```
 
 ### Execution time and other metrics (Pytorch implementation)
