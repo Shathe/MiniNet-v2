@@ -15,19 +15,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--width", help="width", default=1024)
 parser.add_argument("--height", help="height", default=512)
 parser.add_argument("--cpu_version", help="Whether to use the cpu version", default=0)
-parser.add_argument("--cpu", help="Whether to use the cpu", default=0)
 
 args = parser.parse_args()
 
 
 
-n_gpu = 1
+n_gpu = 0
 os.environ["CUDA_VISIBLE_DEVICES"] = str(n_gpu)
 # Hyperparameter
 width = int(args.width)
 height = int(args.height)
 cpu_version = bool(int(args.cpu_version))
-cpu = bool(int(args.cpu))
 
 # For Batch_norm or dropout operations: training or testing
 training_flag = tf.placeholder(tf.bool)
