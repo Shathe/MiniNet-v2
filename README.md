@@ -67,7 +67,7 @@ python train.py --train 1 --dataset ./Datasets/camvid \
 --checkpoint_path ./weights/Mininetv2/camvid_new \
 --n_classes 11 --ignore_label 11 --width 960 --height 720 \
 --max_batch_size 6 --init_lr 1e-3  --min_lr 1e-5 --epochs 1500 \
---output_resize_factor 2 --median_frequency 0.12
+--output_resize_factor 2 --img_resize_factor 1 --median_frequency 0.12
 ```
 ### Cityscapes
 First download the dataset [here](https://drive.google.com/drive/folders/1xdfwU164M7tJVOaqco-tGMBcQcb1r_ml?usp=sharing).
