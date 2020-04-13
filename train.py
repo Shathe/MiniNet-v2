@@ -4,12 +4,11 @@ import os
 import argparse
 import time
 from Mininet import MiniNet2, MiniNet2_cpu
-from utils.utils import get_parameters
+from utils.utils import get_parameters, export_to_pb
 from Loader import Loader
 import math
 import cv2
 random.seed(os.urandom(9))
-
 
  
 parser = argparse.ArgumentParser() 
@@ -88,7 +87,7 @@ else:
 img_out = tf.argmax(
     tf.image.resize_bilinear(output, size=[tf.shape(output)[1] , tf.shape(output)[2] ], align_corners=True), 3)
 
- 
+
 # Get shapes
 shape_output = tf.shape(output)
 label_shape = tf.shape(label)
@@ -153,6 +152,8 @@ with tf.Session() as sess:
         print('Loading model...')
         restorer.restore(sess, ckpt2.model_checkpoint_path)
         print('Model loaded')
+        export_to_pb(sess, name='./weights/model.pb')
+
 
     if train_or_test:
 
@@ -286,3 +287,5 @@ with tf.Session() as sess:
         print("loss: " + str(loss_acum / testing_samples))
         print('matrix_conf')
         print(matrix_confusion)
+
+
