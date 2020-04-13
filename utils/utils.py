@@ -30,3 +30,41 @@ def export_to_pb(sess, name='model.pb'):
 
     # dump GraphDef to file
     graph_io.write_graph(output_graph_def, './', name, as_text=False)
+
+import os
+
+def export_to_pb2(sess, name='model.pb'):
+	export_path = os.path.join(
+		tf.compat.as_bytes(name)
+	)
+	builder = tf.saved_model.builder.SavedModelBuilder(export_path)
+	feature_configs = {
+		'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
+		'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
+	}
+	serialized_example = tf.placeholder(tf.string, name="tf_example")
+	tf_example = tf.parse_example(serialized_example, feature_configs)
+	x = tf.identity(tf_example['x'], name='x')
+	y = tf.identity(tf_example['y'], name='y')
+	predict_input = x
+	predict_output = y
+	predict_signature_def_map = tf.saved_model.signature_def_utils.predict_signature_def(
+		inputs={
+			tf.saved_model.signature_constants.PREDICT_INPUTS: predict_input
+		},
+		outputs={
+			tf.saved_model.signature_constants.PREDICT_OUTPUTS: predict_output
+		}
+	)
+
+	legacy_init_op = tf.group(tf.tables_initializer(), name="legacy_init_op")
+	builder.add_meta_graph_and_variables(
+		sess=sess,
+		tags=[tf.saved_model.tag_constants.SERVING],
+		signature_def_map={
+			"predict_signature_map": predict_signature_def_map
+		},
+		legacy_init_op=legacy_init_op,
+		assets_collection=None
+	)
+	builder.save()

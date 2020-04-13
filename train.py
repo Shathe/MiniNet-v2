@@ -4,7 +4,7 @@ import os
 import argparse
 import time
 from Mininet import MiniNet2, MiniNet2_cpu
-from utils.utils import get_parameters, export_to_pb
+from utils.utils import get_parameters, export_to_pb, export_to_pb2
 from Loader import Loader
 import math
 import cv2
@@ -152,7 +152,8 @@ with tf.Session() as sess:
         print('Loading model...')
         restorer.restore(sess, ckpt2.model_checkpoint_path)
         print('Model loaded')
-        export_to_pb(sess, name=os.path.join(checkpoint_path, 'iou', 'model.pb'))
+
+        export_to_pb2(sess, name=os.path.join(checkpoint_path, 'iou', 'model_tflite'))
 
 
     if train_or_test:
