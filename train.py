@@ -152,7 +152,7 @@ with tf.Session() as sess:
         print('Loading model...')
         restorer.restore(sess, ckpt2.model_checkpoint_path)
         print('Model loaded')
-        export_to_pb(sess, name='./weights/model.pb')
+        export_to_pb(sess, name=os.path.join(checkpoint_path, 'iou', 'model.pb'))
 
 
     if train_or_test:
